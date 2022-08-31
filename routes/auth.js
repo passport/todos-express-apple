@@ -80,6 +80,11 @@ router.get('/oauth2/redirect/apple', passport.authenticate('apple', {
   failureRedirect: '/login'
 }));
 
+router.post('/oauth2/redirect/apple', passport.authenticate('apple', {
+  successReturnToOrRedirect: '/',
+  failureRedirect: '/login'
+}));
+
 router.post('/logout', function(req, res, next) {
   req.logout(function(err) {
     if (err) { return next(err); }
