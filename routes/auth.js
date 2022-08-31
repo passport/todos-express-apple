@@ -1,36 +1,45 @@
 var express = require('express');
 var passport = require('passport');
 var AppleStrategy = require('@nicokaiser/passport-apple');
-var FacebookStrategy = require('passport-facebook');
 var db = require('../db');
 
 
-passport.use(new FacebookStrategy({
-  clientID: process.env['FACEBOOK_CLIENT_ID'],
-  clientSecret: process.env['FACEBOOK_CLIENT_SECRET'],
-  callbackURL: '/oauth2/redirect/facebook',
+//console.log(process.env['APPLE_KEY']);
+
+passport.use(new AppleStrategy({
+  clientID: process.env['APPLE_CLIENT_ID'],
+  teamID: process.env['APPLE_TEAM_ID'],
+  keyID: process.env['APPLE_KEY_ID'],
+  callbackURL: '/oauth2/redirect/apple',
+  key: process.env['APPLE_KEY'],
+  scope: ['name', 'email'],
   state: true
 }, function verify(accessToken, refreshToken, profile, cb) {
+  console.log('VERIFY APPLE!');
+  console.log(accessToken);
+  console.log(refreshToken);
+  console.log(profile);
+  
   db.get('SELECT * FROM federated_credentials WHERE provider = ? AND subject = ?', [
-    'https://www.facebook.com',
+    'https://appleid.apple.com',
     profile.id
   ], function(err, row) {
     if (err) { return cb(err); }
     if (!row) {
       db.run('INSERT INTO users (name) VALUES (?)', [
-        profile.displayName
+        profile.name
       ], function(err) {
         if (err) { return cb(err); }
         var id = this.lastID;
         db.run('INSERT INTO federated_credentials (user_id, provider, subject) VALUES (?, ?, ?)', [
           id,
-          'https://www.facebook.com',
+          'https://appleid.apple.com',
           profile.id
         ], function(err) {
           if (err) { return cb(err); }
           var user = {
             id: id,
-            name: profile.displayName
+            name: profile.name
           };
           return cb(null, user);
         });
@@ -64,9 +73,9 @@ router.get('/login', function(req, res, next) {
   res.render('login');
 });
 
-router.get('/login/federated/facebook', passport.authenticate('facebook'));
+router.get('/login/federated/apple', passport.authenticate('apple'));
 
-router.get('/oauth2/redirect/facebook', passport.authenticate('facebook', {
+router.get('/oauth2/redirect/apple', passport.authenticate('apple', {
   successReturnToOrRedirect: '/',
   failureRedirect: '/login'
 }));
