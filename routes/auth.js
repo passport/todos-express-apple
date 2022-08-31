@@ -10,7 +10,7 @@ passport.use(new AppleStrategy({
   clientID: process.env['APPLE_CLIENT_ID'],
   teamID: process.env['APPLE_TEAM_ID'],
   keyID: process.env['APPLE_KEY_ID'],
-  callbackURL: '/oauth2/redirect/apple',
+  callbackURL: 'https://todos-express-passport-apple.onrender.com/oauth2/redirect/apple',
   key: process.env['APPLE_KEY'],
   scope: ['name', 'email'],
   state: true
